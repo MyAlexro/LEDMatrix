@@ -1,7 +1,7 @@
 #define COLS 6              //Columns are controlling the LEDs' cathodes
 #define ROWS 6              //Rows are controlling the LEDs' anodes
-#define PULSE 3             //milliseconds
-#define FRAME_DURATION 250  //milliseconds
+#define PULSE 2             //milliseconds
+#define FRAME_DURATION 200  //milliseconds
 
 #define ROW1 10
 #define ROW2 16
@@ -40,12 +40,10 @@ uint8_t buff_matrix[ROWS][COLS] = {
 };
 
 uint32_t prev_millis = 0;
-char counter = 0;
+char currentFrame = 0;
 
-void drawMatrix(uint8_t[ROWS][COLS]);
+void drawMatrix();
 void resetMatrix();
-void resetBufferMatrix();
-void updateBufferMatrix(uint8_t[ROWS][COLS]);
 void activateColumn(uint8_t);
 
 #pragma region animation frames
@@ -64,7 +62,7 @@ frame f1 = { .matrix = {
                { 0, 0, 0, 0, 0, 0 },
                { 0, 0, 0, 0, 0, 0 },
                { 0, 0, 0, 0, 0, 0 } },
-             .frameDuration = FRAME_DURATION };
+             .frameDuration = FRAME_DURATION*2 };
 frame f2 = { .matrix = {
                { 0, 0, 0, 0, 0, 0 },
                { 0, 1, 1, 1, 0, 0 },
@@ -72,7 +70,7 @@ frame f2 = { .matrix = {
                { 0, 0, 0, 0, 0, 0 },
                { 0, 0, 0, 0, 0, 0 },
                { 0, 0, 0, 0, 0, 0 } },
-             .frameDuration = FRAME_DURATION };
+             .frameDuration = FRAME_DURATION*2 };
 frame f3 = { .matrix = {
                { 0, 1, 0, 1, 0, 0 },
                { 1, 1, 1, 1, 1, 0 },
@@ -80,7 +78,7 @@ frame f3 = { .matrix = {
                { 0, 0, 1, 0, 0, 0 },
                { 0, 0, 0, 0, 0, 0 },
                { 0, 0, 0, 0, 0, 0 } },
-             .frameDuration = FRAME_DURATION };
+             .frameDuration = FRAME_DURATION*2 };
 frame f4 = { .matrix = {
                { 0, 1, 0, 1, 0, 0 },
                { 1, 0, 1, 0, 1, 0 },
@@ -149,8 +147,6 @@ frame f11 = { .matrix = {
 
 #pragma endregion
 
-animation anim = { .frames = { f0,f1,f2,f3,f4,f5,f6,f7,f8,f9,f10,f11 }, .framesNumber = 12 };
-
 frame frameProva = {
   .matrix = {
     { 1, 1, 1, 1, 1, 1 },
@@ -173,13 +169,11 @@ frame frameProva2 = {
   .frameDuration = 400,
 };
 
-
+animation anim = { .frames = { f0,f1,f2,f3,f4,f5,f6,f7,f8,f9,f10,f11 }, .framesNumber = 12 };
 //animation anim = { .frames = { f1, frameProva2 }, .framesNumber = 1 };
 
 
 void setup() {
-
-
   for (uint8_t i = 0; i < ROWS; i++) {
     pinMode(row[i], OUTPUT);
     digitalWrite(row[i], LOW);
@@ -192,21 +186,13 @@ void setup() {
 
 
 void loop() {
-  updateBufferMatrix(anim.frames[counter].matrix);
-  if (millis() - prev_millis > anim.frames[counter].frameDuration) {
+  if (millis() - prev_millis > anim.frames[currentFrame].frameDuration) {
     prev_millis = millis();
 
-    counter = counter == anim.framesNumber - 1 ? 0 : counter + 1;
+    currentFrame = currentFrame == anim.framesNumber - 1 ? 0 : currentFrame + 1;
   }
 
   drawMatrix();
-}
-
-void resetBufferMatrix() {
-  for (int i = 0; i < COLS; i++) {
-    for (int j = 0; j < ROWS; j++)
-      buff_matrix[i][j] = 0;
-  }
 }
 
 void drawMatrix() {
@@ -219,7 +205,7 @@ void drawMatrix() {
 
     // draw the active rows in this column
     for (int thisRow = 0; thisRow < ROWS; thisRow++) {
-      digitalWrite(row[thisRow], buff_matrix[thisRow][thisCol]);
+        digitalWrite(row[thisRow], anim.frames[currentFrame].matrix[thisRow][thisCol]);
     }
     delay(PULSE);
   }
@@ -238,12 +224,4 @@ void resetMatrix() {
 
   for (uint8_t i = 0; i < ROWS; i++)
     digitalWrite(row[i], LOW);
-}
-
-void updateBufferMatrix(uint8_t matrix[ROWS][COLS]) {
-  for (uint8_t i = 0; i < ROWS; i++) {
-    for (uint8_t j = 0; j < COLS; j++) {
-      buff_matrix[i][j] = matrix[i][j];
-    }
-  }
 }
