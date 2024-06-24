@@ -1,4 +1,4 @@
-#include <ledmatrix.h>
+#include "ledmatrix.h"
 
 const uint8_t row[ROWS] = { ROW1, ROW2, ROW3, ROW4, ROW5, ROW6 };
 const uint8_t col[COLS] = { COL1, COL2, COL3, COL4, COL5, COL6 };
